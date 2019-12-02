@@ -222,3 +222,5 @@ dmypy.json
 .idea/projetScryptingSys.iml
 
 .idea/vcs.xml
+
+application.log
