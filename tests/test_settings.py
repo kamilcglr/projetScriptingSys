@@ -7,7 +7,7 @@ from Utils.settings import Settings
 class TestSettings(unittest.TestCase):
 
     def test_read_parameters(self):
-        settings = Settings("../testSettings.ini")
+        settings = Settings("../settings/testSettings.ini")
         settings.read_parameters()
         self.assertIsNotNone(settings)
         self.assertTrue(settings.mode == "FTP")
