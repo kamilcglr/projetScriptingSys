@@ -1,21 +1,26 @@
 import logging.config
 import os
-import traceback
 from os import path
 
-from Utils.custom_exceptions import ApplicationError
-from Utils.ftp_connection import FtpConnection
-from Utils.settings import Settings
+from connection_modes.sftp_saving import SftpSave
+from utils.custom_exceptions import ApplicationError
+from connection_modes.ftp_ftps_saving import FtpFtpsSave
+from utils.settings import Settings
 
 
 def save_with_ftp(settings):
-    ftp_connection = FtpConnection(settings)
+    ftp_connection = FtpFtpsSave(settings)
     ftp_connection.connect_ftp()
 
+def save_with_sftp(settings):
+    sftp_connection = SftpSave(settings)
+    sftp_connection.connect_sftp()
 
 def switch_mode(settings):
-    if settings.save_mode == 'FTP':
+    if settings.save_mode == 'FTP' or settings.save_mode == 'FTPS':
         save_with_ftp(settings)
+    elif settings.save_mode == 'SFTP':
+        save_with_sftp(settings)
     else:
         logging.critical("Save method is not valid, please verify your settings.ini")
         raise ApplicationError

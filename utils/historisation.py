@@ -10,5 +10,8 @@ def get_new_name_by_date():
     return now.strftime("%Y%m%d_%H:%M:%S")
 
 
-def get_new_names_by_version(file_names):
-    return 0
+def get_new_names_by_version(directories):
+    new_directories_name = []
+    for i in range(0, len(directories)+1):
+        new_directories_name.append(str(i))
+    return new_directories_name

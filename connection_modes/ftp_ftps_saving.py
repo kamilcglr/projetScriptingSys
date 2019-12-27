@@ -1,14 +1,14 @@
 import ftplib
 import logging
 import os
-from ftplib import FTP
+import ssl
 from pathlib import Path
 
-from Utils.custom_exceptions import ApplicationError
-from Utils.historisation import get_new_name_by_date
+from utils.custom_exceptions import ApplicationError
+from utils.historisation import get_new_names_by_version, get_new_name_by_date
 
 
-class FtpConnection:
+class FtpFtpsSave:
 
     def __init__(self, settings):
         self.server_ip_address = settings.server_ip_address
@@ -17,29 +17,50 @@ class FtpConnection:
 
     def connect_ftp(self):
         try:
-            logging.info("Connection to FTP server at " + self.server_ip_address)
-            with FTP(self.server_ip_address, timeout=5) as self.ftp_connection:
-                self.ftp_connection.encoding = 'utf-8'
-                logging.info(self.ftp_connection.getwelcome())
+            if self.settings.save_mode == "FTPS":
+                logging.info("Connection to FTPS server at " + self.server_ip_address)
+                self.ftp_connection = CustomFtpTLS()
+                self.ftp_connection.connect(self.server_ip_address, int(self.settings.port), timeout=5)
+                self.ftp_connection.auth()
+                self.ftp_connection.login(user=self.settings.username, passwd=self.settings.password)
+                self.ftp_connection.prot_p()
+
+            else:
+                logging.info("Connection to FTP server at " + self.server_ip_address)
+                self.ftp_connection = ftplib.FTP()
+                self.ftp_connection.connect(self.server_ip_address, int(self.settings.port), timeout=5)
                 self.ftp_connection.login(user=self.settings.username, passwd=self.settings.password)
 
-                self.ftp_connection.cwd(self.settings.directory_to_save_in)
-                logging.info("Positioned in: " + self.ftp_connection.pwd())
+            # self.ftp_connection.set_debuglevel(3)
+            self.ftp_connection.encoding = 'utf-8'
+            logging.info(self.ftp_connection.getwelcome())
 
-                self.save_files()
+            self.ftp_connection.cwd(self.settings.directory_to_save_in)
+            logging.info("Positioned in: " + self.ftp_connection.pwd())
 
-                self.ftp_connection.quit()
-                logging.info("Quiting from FTP server at " + self.server_ip_address)
+            self.save_files()
+
+            self.ftp_connection.quit()
+            logging.info("Quiting from FTP server at " + self.server_ip_address)
 
         except ftplib.all_errors as e:
             raise ApplicationError(str(e))
 
     def save_files(self):
         self.cleaning()
-        new_directory_name = None
 
         if self.settings.archiving_mode == "date":
             new_directory_name = get_new_name_by_date()
+        else:
+            directories_in_path = self.get_directories_in_path(self.ftp_connection.pwd())
+            directories_in_path.sort(key=lambda entry: entry[1]['modify'], reverse=False)
+            old_names = [entry[0] for entry in directories_in_path]
+            new_names = get_new_names_by_version(old_names)
+            new_directory_name = new_names[len(new_names) - 1]
+            for directory_index in range(0, len(new_names) - 1):
+                logging.info(
+                    "Renaming directory: " + old_names[directory_index] + " to: " + new_names[directory_index]);
+                self.ftp_connection.rename(old_names[directory_index], new_names[directory_index])
 
         # create new directory to store files
         self.ftp_connection.mkd(new_directory_name)
@@ -48,7 +69,6 @@ class FtpConnection:
         logging.info("Positioned in: " + self.ftp_connection.pwd())
 
         for path in self.settings.paths_to_save:
-            logging.info(self.ftp_connection.pwd())
 
             if os.path.isfile(path):
                 file_name = Path(path).name
@@ -80,7 +100,7 @@ class FtpConnection:
                 # sort files by date from oldest to newest
                 entries.sort(key=lambda entry: entry[1]['modify'], reverse=False)
                 oldest_name = entries[0][0]
-                logging.info("Deleting: " + oldest_name)
+                logging.info("Deleting directory: " + oldest_name)
                 self.remove_directories(oldest_name)
                 entries = self.get_directories_in_path(self.ftp_connection.pwd())
 
@@ -126,3 +146,20 @@ class FtpConnection:
             self.ftp_connection.storbinary('STOR ' + file_name, open(path, 'rb'))
         except PermissionError:
             logging.warning("Cannot copy: " + path + " PERMISSION DENIED")
+
+
+class CustomFtpTLS(ftplib.FTP_TLS):
+    """If session want session reuse, this extended class resolve the problem
+    https://stackoverflow.com/questions/48260616/python3-6-ftp-tls-and-session-reuse?rq=1
+    """
+
+    def ntransfercmd(self, cmd, rest=None):
+        conn, size = ftplib.FTP.ntransfercmd(self, cmd, rest)
+        if self._prot_p:
+            session = self.sock.session
+            if isinstance(self.sock, ssl.SSLSocket):
+                session = self.sock.session
+            conn = self.context.wrap_socket(conn,
+                                            server_hostname=self.host,
+                                            session=session)  # this is the fix
+        return conn, size

@@ -1,1 +1,1 @@
-ERROR: 12/22/2019 23:53:12 - root - get_files - File or directory NOT FOUND: /home/kamilcaglar/Images/a.txt
+ERROR: 12/27/2019 15:20:31 get_files() File or directory NOT FOUND: /home/kamilcaglar/Images/a.txt

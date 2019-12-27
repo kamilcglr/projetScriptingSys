@@ -1,7 +1,7 @@
 import logging
 from os import path
 
-from Utils.custom_exceptions import ApplicationError
+from utils.custom_exceptions import ApplicationError
 
 
 class Settings:
@@ -12,15 +12,19 @@ class Settings:
         # [ main ]
         self.save_mode = None
         self.paths_to_save = None
-        self.server_ip_address = None
         self.archiving_mode = None
         self.archiving_max = None
+        self.server_ip_address = None
 
-        # [ ftp ]
+        # [ ftp ] and [ ftps ]
         self.username = None
         self.password = None
         self.port = None
         self.directory_to_save_in = None
+
+        # [ sftp ]
+        self.identification_mode = None
+        self.full_path_of_rsa_key = None
 
     def read_parameters(self):
         try:
@@ -39,20 +43,35 @@ class Settings:
 
             self.paths_to_save = config.get('main', 'paths_to_save').splitlines()
             self.save_mode = config.get('main', 'save_mode')
-            self.server_ip_address = config.get('main', 'server_ip_address')  # TODO verify
             self.archiving_mode = config.get('main', 'archiving_mode')
             self.archiving_max = config.get('main', 'archiving_max')
 
             # ================================= main =================================
-            if self.save_mode == "FTP":
+            if self.save_mode == "FTP" or self.save_mode == "FTPS":
+                if self.save_mode == "FTPS":
+                    logging.info("FTPS mode chosen")
+                else:
+                    logging.info("FTP mode chosen")
                 self.username = config.get('ftp', 'username')
                 self.password = config.get('ftp', 'password')
                 self.port = config.get('ftp', 'port')
                 self.directory_to_save_in = config.get('ftp', 'directory_to_save_in')
+                self.server_ip_address = config.get('ftp', 'server_ip_address')
+
             elif self.save_mode == "SFTP":
-                print()
-            elif self.save_mode == "FTPS":
-                print()
+                logging.info("SFTP mode chosen")
+                self.identification_mode = config.get('sftp', 'identification_mode')
+                if self.identification_mode == "longinandkey":
+                    self.full_path_of_rsa_key = config.get('sftp', 'full_path_of_rsa_key')
+
+                    # verify if settings.ini exists
+                    if not path.exists(self.full_path_of_rsa_key):
+                        raise ApplicationError("RSA key file not found")
+                self.username = config.get('ftp', 'username')
+                self.password = config.get('ftp', 'password')
+                self.directory_to_save_in = config.get('sftp', 'directory_to_save_in')
+                self.server_ip_address = config.get('sftp', 'server_ip_address')
+
             elif self.save_mode == "RSYNC":
                 print()
             elif self.save_mode == "RSYNC":
