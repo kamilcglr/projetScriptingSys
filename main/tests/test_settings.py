@@ -1,7 +1,7 @@
 import unittest
 from os import path
 
-from utils.settings import Settings
+from main.utils.settings import Settings
 
 
 class TestSettings(unittest.TestCase):
@@ -18,5 +18,5 @@ class TestSettings(unittest.TestCase):
         self.assertFalse(path.exists(settings.paths_to_save[1]))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__.py':
     unittest.main()

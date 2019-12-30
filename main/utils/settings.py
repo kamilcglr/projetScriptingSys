@@ -1,7 +1,7 @@
 import logging
 from os import path
 
-from utils.custom_exceptions import ApplicationError
+from main.utils.custom_exceptions import ApplicationError
 
 
 class Settings:
@@ -50,13 +50,14 @@ class Settings:
             if self.save_mode == "FTP" or self.save_mode == "FTPS":
                 if self.save_mode == "FTPS":
                     logging.info("FTPS mode chosen")
+                    self.server_ip_address = config.get('ftps', 'server_ip_address')
                 else:
                     logging.info("FTP mode chosen")
+                    self.server_ip_address = config.get('ftp', 'server_ip_address')
                 self.username = config.get('ftp', 'username')
                 self.password = config.get('ftp', 'password')
                 self.port = config.get('ftp', 'port')
                 self.directory_to_save_in = config.get('ftp', 'directory_to_save_in')
-                self.server_ip_address = config.get('ftp', 'server_ip_address')
 
             elif self.save_mode == "SFTP":
                 logging.info("SFTP mode chosen")
@@ -67,13 +68,26 @@ class Settings:
                     # verify if settings.ini exists
                     if not path.exists(self.full_path_of_rsa_key):
                         raise ApplicationError("RSA key file not found")
-                self.username = config.get('ftp', 'username')
-                self.password = config.get('ftp', 'password')
+                self.username = config.get('sftp', 'username')
+                self.password = config.get('sftp', 'password')
                 self.directory_to_save_in = config.get('sftp', 'directory_to_save_in')
                 self.server_ip_address = config.get('sftp', 'server_ip_address')
 
             elif self.save_mode == "RSYNC":
-                print()
+                logging.info("RSYNC mode chosen")
+                self.identification_mode = config.get('rsync', 'identification_mode')
+                if self.identification_mode == "longinandkey":
+                    self.full_path_of_rsa_key = config.get('rsync', 'full_path_of_rsa_key')
+
+                    # verify if settings.ini exists
+                    if not path.exists(self.full_path_of_rsa_key):
+                        raise ApplicationError("RSA key file not found")
+                self.username = config.get('rsync', 'username')
+                self.password = config.get('rsync', 'password')
+                self.directory_to_save_in = config.get('rsync', 'directory_to_save_in')
+                self.server_ip_address = config.get('rsync', 'server_ip_address')
+                self.port = config.get('rsync', 'port')
+
             elif self.save_mode == "RSYNC":
                 print()
             elif self.save_mode == "LOCAL":

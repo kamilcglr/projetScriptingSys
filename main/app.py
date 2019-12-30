@@ -1,26 +1,37 @@
+#!/usr/bin/env python
 import logging.config
 import os
 from os import path
 
-from connection_modes.sftp_saving import SftpSave
-from utils.custom_exceptions import ApplicationError
-from connection_modes.ftp_ftps_saving import FtpFtpsSave
-from utils.settings import Settings
+from main.connection_modes.ftp_ftps_saving import FtpFtpsSave
+from main.connection_modes.rsync_saving import RSyncSave
+from main.connection_modes.sftp_saving import SftpSave
+from main.utils.custom_exceptions import ApplicationError
+from main.utils.settings import Settings
 
 
 def save_with_ftp(settings):
     ftp_connection = FtpFtpsSave(settings)
     ftp_connection.connect_ftp()
 
+
 def save_with_sftp(settings):
     sftp_connection = SftpSave(settings)
     sftp_connection.connect_sftp()
+
+
+def save_with_rsync(settings):
+    rsync_connection = RSyncSave(settings)
+    rsync_connection.connect_rsync()
+
 
 def switch_mode(settings):
     if settings.save_mode == 'FTP' or settings.save_mode == 'FTPS':
         save_with_ftp(settings)
     elif settings.save_mode == 'SFTP':
         save_with_sftp(settings)
+    elif settings.save_mode == 'RSYNC':
+        save_with_rsync(settings)
     else:
         logging.critical("Save method is not valid, please verify your settings.ini")
         raise ApplicationError
@@ -40,7 +51,7 @@ def get_files(paths_to_save):
         if path.exists(path_or_file):
             if path.isfile(path_or_file):
                 logging.info("File: " + path_or_file + " exists")
-                paths_to_save_ok.append(path_or_file) # TODO delete if using oswalk
+                paths_to_save_ok.append(path_or_file)  # TODO delete if using oswalk
             else:
                 logging.info("Directory: " + path_or_file + " exists")
                 paths_to_save_ok.append(path_or_file)
@@ -56,11 +67,10 @@ def get_files(paths_to_save):
             list_files_to_save += complete_path
 
     logging.info("Analyse terminated " + str(len(list_files_to_save)) + " files analysed")
-    #return list_files_to_save
     return paths_to_save_ok
 
-if __name__ == '__main__':
 
+def run():
     try:
         # Initialize logging
         logging.config.fileConfig('settings/logging.ini')

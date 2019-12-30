@@ -1,0 +1,10 @@
+#!/home/kamilcaglar/PycharmProjects/projetScryptingSys/venv/bin/python
+# -*- coding: utf-8 -*-
+import re
+import sys
+
+from linux_utils.cli import cryptdisks_stop_cli
+
+if __name__ == '__main__.py':
+    sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+    sys.exit(cryptdisks_stop_cli())

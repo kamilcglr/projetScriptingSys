@@ -4,8 +4,8 @@ import os
 import ssl
 from pathlib import Path
 
-from utils.custom_exceptions import ApplicationError
-from utils.historisation import get_new_names_by_version, get_new_name_by_date
+from main.utils.custom_exceptions import ApplicationError
+from main.utils.historisation import get_new_names_by_version, get_new_name_by_date
 
 
 class FtpFtpsSave:

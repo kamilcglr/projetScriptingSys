@@ -1,12 +1,11 @@
 import logging
 import os
-import socket
 from pathlib import Path
 
-import paramiko as paramiko
+import paramiko
 
-from utils.custom_exceptions import ApplicationError
-from utils.historisation import get_new_name_by_date, get_new_names_by_version
+from main.utils.custom_exceptions import ApplicationError
+from main.utils.historisation import get_new_name_by_date, get_new_names_by_version
 
 
 class SftpSave:
