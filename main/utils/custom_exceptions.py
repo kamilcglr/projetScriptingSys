@@ -6,10 +6,6 @@ class Error(Exception):
 
 class ApplicationError(Error):
     """Raised when could not save, we have to stop application
-        Attributes:
-            previous -- state at beginning of transition
-            next -- attempted new state
-            message -- explanation of why the specific transition is not allowed
     """
 
     def __init__(self, message):

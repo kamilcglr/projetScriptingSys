@@ -11,6 +11,11 @@ def get_new_name_by_date():
 
 
 def get_new_names_by_version(directories):
+    """
+    Get a list of directory names with number. e.g. ['1', '2', '3', '4', '5'] if there are 5 backups.
+    :param directories list of old names.
+    :return: directories: list of string.
+    """
     new_directories_name = []
     for i in range(0, len(directories)+1):
         new_directories_name.append(str(i))

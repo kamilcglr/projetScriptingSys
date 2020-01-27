@@ -4,7 +4,7 @@ import select
 from logging import DEBUG, ERROR
 
 
-def call(popenargs, logger, stdout_log_level=DEBUG, stderr_log_level=ERROR, **kwargs):
+def call(popenargs, infos, stdout_log_level=DEBUG, stderr_log_level=ERROR, **kwargs):
     """
     Variant of subprocess.call that accepts a logger instead of stdout/stderr,
     and logs stdout messages via logger.debug and stderr messages via
@@ -22,6 +22,8 @@ def call(popenargs, logger, stdout_log_level=DEBUG, stderr_log_level=ERROR, **kw
             line = io.readline()
             if len(line) > 2:
                 logging.log(log_level[io], line[:-1])
+                if "Number of files:" in str(line[:-1]):
+                    infos.nb_file_copied = str(infos.nb_file_copied) + str(line[:-1])
 
     # keep checking stdout/stderr until the child exits
     while child.poll() is None:
